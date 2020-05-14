@@ -7,7 +7,12 @@ class Dock
 private:
     /* data */
 public:
+    int id;
+    bool isBusy;
+    int shipID;
 
-    bool isFree;
+
+
+    Dock();
 
 };
