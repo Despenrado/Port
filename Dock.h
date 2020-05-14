@@ -8,4 +8,6 @@ private:
     /* data */
 public:
 
+    bool isFree;
+
 };
