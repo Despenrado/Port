@@ -1,6 +1,3 @@
-#include <vector>
-#include <iostream>
-#include <stdlib.h>
 #include "Dock.h"
 
 using namespace std;
@@ -8,7 +5,11 @@ using namespace std;
 class Port
 {
 public:
+    static atomic_bool *isRunning;
     static vector<Dock *> dockList;
 
     static bool registerShip(Ship *);
+    static bool unregisterShip(Ship *);
+
+    static void genDockList(int);
 };

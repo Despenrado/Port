@@ -13,9 +13,9 @@ class Buffer
 private:
 
 public:
-    atomic<string> state;
+    atomic<string> state = atomic<string>("");
     Dock *myDock;
-    int progress;
+    atomic_int progress = atomic_int(0);
     mutex mtx;
     vector<Container *> containerList;
 

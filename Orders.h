@@ -2,7 +2,6 @@
 #include <iostream>
 #include <stdlib.h>
 #include <mutex>
-
 #include "Container.h" 
 
 using namespace std;
@@ -19,7 +18,8 @@ public :
     static void genereteContainer();
     static bool existContainer(int);
     static Container* giveContainer();
-    
+    static void genContainerList(int);
+    static void workSimulation(int);
 
 
     Orders();

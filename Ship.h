@@ -2,9 +2,7 @@
 #include <thread>
 #include <mutex>
 #include <atomic>
-#include "Orders.h"
 #include "Container.h"
-//#include "Port.h"
 
 
 
@@ -16,10 +14,10 @@ private:
     /* data */
 public:
     int id;
-    atomic<string> state;
+    atomic<string> state = atomic<string>("");
     vector<Container *> containerList;
     int maxContainers;
-    int progress;
+    atomic_int progress = atomic_int(0);
     mutex mtx;
 
     Ship();

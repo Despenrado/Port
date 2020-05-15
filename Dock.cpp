@@ -9,3 +9,7 @@ Dock::Dock() {
 void Dock::registerShipInDock(Ship *ship){
     this->ship = ship;
 }
+
+void Dock::unregisterShipInDock(){
+    this->ship = NULL;
+}

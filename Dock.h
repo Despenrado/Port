@@ -18,4 +18,5 @@ public:
     Dock();
 
     void registerShipInDock(Ship *);
+    void unregisterShipInDock();
 };

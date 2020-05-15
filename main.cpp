@@ -3,15 +3,29 @@
 #include "ncurses.h"
 #include <cstring>
 #include <string>
-#include <atomic>
-#include <thread>
-#include <iostream>
-#include <vector>
+#include "Port.h"
+#include "Orders.h"
 
 using namespace std;
 
-atomic<bool> *isRunning = new atomic<bool>(true);
+// static variables
+atomic_bool *Port::isRunning = new atomic_bool(true);
+vector<Dock *> Port::dockList = vector<Dock*>();
+mutex Orders::mtx = mutex();
+vector<Container *> Orders::containerList = vector<Container*>();
+
+// main variables
 bool emergencyExit = false;
+mutex mainMutex;
+
+// 
+// Port;
+// Orders;
+vector<Ship*> shipList = vector<Ship*>();
+vector<thread*> shipTreadList = vector<thread*>();
+vector<thread*> craneThreadList = vector<thread*>();//buffer
+thread* threadContainerGenerator;
+
 
 void keyboardFunc()
 {
@@ -25,13 +39,46 @@ void keyboardFunc()
         }
         //std::terminate();
     } while (key != 27 && !emergencyExit);
-    *isRunning = false;
+    *Port::isRunning = false;
+}
+
+
+void initialize(){
+    Orders::genContainerList(10);
+    Port::genDockList(1);
+    for (int i = 0; i < 1; i++){
+        shipList.push_back(new Ship(i));
+    }
+}
+
+void launchThreads(){
+    for(int i = 0; i < shipList.size(); i++){
+        mainMutex.lock();
+        shipTreadList.push_back(new thread([i]() {
+            shipList.at(i)->lifeCycle();
+        }));
+        mainMutex.unlock();
+    }
+    for(int i = 0; i < shipList.size(); i++){
+        mainMutex.lock();
+        craneThreadList.push_back(new thread([i]() {
+            Port::dockList.at(i)->buffer->lifeCycle();
+        }));
+        mainMutex.unlock();
+    }
+    threadContainerGenerator = new thread([]() {
+            Orders::lifeCycle();
+        });
+    
 }
 
 int main(int argc, char **argv)
 {
     system("export TERM=xterm-256color");
     srand(time(NULL));
+
+    initialize();
+    //launchThreads();
 
     int row, col;
     initscr();
@@ -150,7 +197,7 @@ int main(int argc, char **argv)
         }
         refresh();
         this_thread::sleep_for(chrono::milliseconds(16));
-    } while (isRunning->load());
+    } while (Port::isRunning->load());
 
     //keyboardThread.~thread();
     clear();
@@ -163,7 +210,7 @@ int main(int argc, char **argv)
     }
     //cout << "waiting for threads:" << endl;
 
-    delete isRunning;
+    delete Port::isRunning;
     cout << "close" << endl;
     //cout << consoleHelp << endl;
     return 0;

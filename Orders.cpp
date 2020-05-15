@@ -1,20 +1,19 @@
 #include "Orders.h"
+#include "Port.h"
 
 
 Orders::Orders() {}
 
 void Orders::lifeCycle(){
-    while (true)
+    while (Port::isRunning->load())
     {
         genereteContainer();
-    }
-    
-    
+        workSimulation(20);
+    }   
 }
 
 
 void Orders::genereteContainer(){
-    
     int randomID = rand() % 100 + 1;
     mtx.lock();
     while (existContainer(randomID))
@@ -46,6 +45,18 @@ Container* Orders::giveContainer(){
     Container* tmp = containerList.at(random);
     mtx.unlock();
     return tmp;
-    
-    
+}
+
+void Orders::genContainerList(int n){
+    for(int i = 0; i < n; i++){
+        Orders::genereteContainer();
+    }
+}
+
+void Orders::workSimulation(int times)
+{
+    for (int i = 0; i < times; i++)
+    {
+        this_thread::sleep_for(chrono::milliseconds(1));
+    }
 }

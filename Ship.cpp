@@ -1,5 +1,6 @@
 #include "Ship.h"
 #include "Port.h"
+#include "Orders.h"
 
 Ship::Ship(int id) {
     this->maxContainers = 5;
@@ -9,7 +10,7 @@ Ship::Ship(int id) {
 Ship::Ship(){}
 
 void Ship::lifeCycle(){
-    while (true)
+    while (Port::isRunning->load())
     {
         loadContainers();
         sail();
@@ -32,10 +33,14 @@ void Ship::loadContainers(){
 void Ship::unloadContainers(){
     this->state = "unloading";
     workSimulation(rand() % 10 + 15);
+    this->mtx.lock();
     while (containerList.size() > 0)
     {
+        this->mtx.unlock();
         workSimulation(rand() % 10 + 15);
+        this->mtx.lock();
     }
+    this->mtx.unlock();
 }
 
 Container* Ship::giveContainer(){
@@ -59,13 +64,24 @@ void Ship::sail(){
 void Ship::moor(){
     this->state = "mooring";
     workSimulation(rand() % 10 + 15);
-    Port::registerShip(this);
+    while (Port::registerShip(this))
+    {
+        this->state = "waitin for mooring";
+        workSimulation(rand() % 10 + 15);
+    }
+    
+
 }
 
 void Ship::unMoor(){
     this->state = "unmooring";
     workSimulation(rand() % 10 + 15);
-    // докер, удали на меня указатель
+    while (Port::unregisterShip(this))
+    {
+        this->state = "waitin for unmooring";
+        workSimulation(rand() % 10 + 15);
+    }
+    
 }
 
 void Ship::workSimulation(int times)
@@ -73,12 +89,8 @@ void Ship::workSimulation(int times)
     for (int i = 0; i < times; i++)
     {
         this_thread::sleep_for(chrono::milliseconds(1));
-        this->mtx.lock();
         progress = float(i * 100) / times;
-        this->mtx.unlock();
         this_thread::sleep_for(chrono::milliseconds(1));
     }
-    this->mtx.lock();
     progress = 0;
-    this->mtx.unlock();
 }
