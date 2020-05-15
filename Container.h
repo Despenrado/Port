@@ -9,9 +9,9 @@ private:
     /* data */
 public:
     int id;
-    bool isFree;
+    bool isSend;
 
-
+    Container(int);
     Container();
 
 };
