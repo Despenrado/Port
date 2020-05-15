@@ -1,25 +1,25 @@
 #include "Buffer.h"
-#include "Dock.h"
 #include "Port.h"
 
-
-Buffer::Buffer(Dock *dock) {
-    this->myDock = dock;
+Buffer::Buffer()
+{
 }
 
-void Buffer::lifeCycle(){
+void Buffer::lifeCycle()
+{
     while (Port::isRunning->load())
     {
         waitingForShip();
         unloadShip();
     }
-    
 }
 
-void Buffer::unloadShip(){
+void Buffer::unloadShip()
+{
     this->mtx.lock();
-    if(myDock->ship != NULL){
-        while (myDock->ship->containerList.size() > 0)
+    if (myShip != NULL)
+    {
+        while (myShip->containerList.size() > 0)
         {
             this->mtx.unlock();
             takeContainer();
@@ -29,22 +29,24 @@ void Buffer::unloadShip(){
         return;
     }
     this->mtx.unlock();
-    
 }
 
-void Buffer::takeContainer(){
+void Buffer::takeContainer()
+{
     this->state = "waiting for ship";
-    if(myDock->ship != NULL){
-        containerList.push_back(myDock->ship->giveContainer());
+    if (myShip != NULL)
+    {
+        containerList.push_back(myShip->giveContainer());
     }
     workSimulation(rand() % 10 + 15);
-
 }
 
-void Buffer::waitingForShip(){
+void Buffer::waitingForShip()
+{
     this->state = "waiting for ship";
     this->mtx.lock();
-    while (myDock->ship == NULL){
+    while (myShip == NULL)
+    {
         this->mtx.unlock();
         workSimulation(rand() % 10 + 15);
         this->mtx.lock();

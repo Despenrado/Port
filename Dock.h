@@ -1,4 +1,3 @@
-#include "Ship.h"
 #include "Buffer.h"
 
 using namespace std;
@@ -13,7 +12,6 @@ public:
     Ship *ship;
     Buffer *buffer;
     mutex mtxBusy;
-
 
     Dock();
 

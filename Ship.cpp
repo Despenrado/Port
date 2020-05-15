@@ -1,15 +1,16 @@
 #include "Ship.h"
 #include "Port.h"
-#include "Orders.h"
 
-Ship::Ship(int id) {
+Ship::Ship(int id)
+{
     this->maxContainers = 5;
     this->id = id;
 }
 
-Ship::Ship(){}
+Ship::Ship() {}
 
-void Ship::lifeCycle(){
+void Ship::lifeCycle()
+{
     while (Port::isRunning->load())
     {
         loadContainers();
@@ -21,7 +22,8 @@ void Ship::lifeCycle(){
     }
 }
 
-void Ship::loadContainers(){
+void Ship::loadContainers()
+{
 
     this->state = "loading";
     while (maxContainers >= containerList.size())
@@ -30,7 +32,8 @@ void Ship::loadContainers(){
     }
 }
 
-void Ship::unloadContainers(){
+void Ship::unloadContainers()
+{
     this->state = "unloading";
     workSimulation(rand() % 10 + 15);
     this->mtx.lock();
@@ -43,25 +46,29 @@ void Ship::unloadContainers(){
     this->mtx.unlock();
 }
 
-Container* Ship::giveContainer(){
-    Container *tmp = this->containerList.at(this->containerList.size()-1);
+Container *Ship::giveContainer()
+{
+    Container *tmp = this->containerList.at(this->containerList.size() - 1);
     this->containerList.pop_back();
     return tmp;
 }
 
-void Ship::takeContainer(){
+void Ship::takeContainer()
+{
     this->state = "taking conteiner";
     this->mtx.lock();
     containerList.push_back(Orders::giveContainer());
     this->mtx.unlock();
 }
 
-void Ship::sail(){
+void Ship::sail()
+{
     this->state = "sailing";
     workSimulation(rand() % 10 + 15);
 }
 
-void Ship::moor(){
+void Ship::moor()
+{
     this->state = "mooring";
     workSimulation(rand() % 10 + 15);
     while (Port::registerShip(this))
@@ -69,11 +76,10 @@ void Ship::moor(){
         this->state = "waitin for mooring";
         workSimulation(rand() % 10 + 15);
     }
-    
-
 }
 
-void Ship::unMoor(){
+void Ship::unMoor()
+{
     this->state = "unmooring";
     workSimulation(rand() % 10 + 15);
     while (Port::unregisterShip(this))
@@ -81,7 +87,6 @@ void Ship::unMoor(){
         this->state = "waitin for unmooring";
         workSimulation(rand() % 10 + 15);
     }
-    
 }
 
 void Ship::workSimulation(int times)

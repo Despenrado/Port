@@ -3,13 +3,11 @@
 #include <vector>
 #include "Container.h"
 
-
 using namespace std;
-
 
 class Train
 {
-    
+
 public:
     int id;
     bool isFull();
@@ -25,7 +23,4 @@ public:
     void loadContainers();
     void takeContainer(Container &);
     void giveContainer(Container &);
-
-
-
 };

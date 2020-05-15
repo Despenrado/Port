@@ -4,28 +4,26 @@
 #include <cstring>
 #include <string>
 #include "Port.h"
-#include "Orders.h"
 
 using namespace std;
 
 // static variables
 atomic_bool *Port::isRunning = new atomic_bool(true);
-vector<Dock *> Port::dockList = vector<Dock*>();
-mutex Orders::mtx = mutex();
-vector<Container *> Orders::containerList = vector<Container*>();
+vector<Dock *> Port::dockList = vector<Dock *>();
+mutex Orders::mtx;
+vector<Container *> Orders::containerList = vector<Container *>();
 
 // main variables
 bool emergencyExit = false;
 mutex mainMutex;
 
-// 
+//
 // Port;
 // Orders;
-vector<Ship*> shipList = vector<Ship*>();
-vector<thread*> shipTreadList = vector<thread*>();
-vector<thread*> craneThreadList = vector<thread*>();//buffer
-thread* threadContainerGenerator;
-
+vector<Ship *> shipList = vector<Ship *>();
+vector<thread *> shipTreadList = vector<thread *>();
+vector<thread *> craneThreadList = vector<thread *>(); //buffer
+thread *threadContainerGenerator;
 
 void keyboardFunc()
 {
@@ -42,24 +40,28 @@ void keyboardFunc()
     *Port::isRunning = false;
 }
 
-
-void initialize(){
+void initialize()
+{
     Orders::genContainerList(10);
     Port::genDockList(1);
-    for (int i = 0; i < 1; i++){
+    for (int i = 0; i < 1; i++)
+    {
         shipList.push_back(new Ship(i));
     }
 }
 
-void launchThreads(){
-    for(int i = 0; i < shipList.size(); i++){
+void launchThreads()
+{
+    for (int i = 0; i < shipList.size(); i++)
+    {
         mainMutex.lock();
         shipTreadList.push_back(new thread([i]() {
             shipList.at(i)->lifeCycle();
         }));
         mainMutex.unlock();
     }
-    for(int i = 0; i < shipList.size(); i++){
+    for (int i = 0; i < shipList.size(); i++)
+    {
         mainMutex.lock();
         craneThreadList.push_back(new thread([i]() {
             Port::dockList.at(i)->buffer->lifeCycle();
@@ -67,9 +69,8 @@ void launchThreads(){
         mainMutex.unlock();
     }
     threadContainerGenerator = new thread([]() {
-            Orders::lifeCycle();
-        });
-    
+        Orders::lifeCycle();
+    });
 }
 
 int main(int argc, char **argv)
@@ -211,7 +212,7 @@ int main(int argc, char **argv)
     //cout << "waiting for threads:" << endl;
 
     delete Port::isRunning;
-    cout << "close" << endl;
+    //cout << "close" << endl;
     //cout << consoleHelp << endl;
     return 0;
 }

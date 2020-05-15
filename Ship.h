@@ -2,9 +2,7 @@
 #include <thread>
 #include <mutex>
 #include <atomic>
-#include "Container.h"
-
-
+#include "Orders.h"
 
 using namespace std;
 
@@ -14,10 +12,11 @@ private:
     /* data */
 public:
     int id;
-    atomic<string> state = atomic<string>("");
+    string state;
+    mutex mtxState;
     vector<Container *> containerList;
     int maxContainers;
-    atomic_int progress = atomic_int(0);
+    atomic_int progress{0};
     mutex mtx;
 
     Ship();
@@ -29,7 +28,7 @@ public:
     void unloadContainers();
     void loadContainers();
     void takeContainer();
-    Container* giveContainer();
+    Container *giveContainer();
     void lifeCycle();
     void workSimulation(int);
 };

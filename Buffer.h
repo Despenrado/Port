@@ -1,21 +1,15 @@
-#include <iostream>
-#include <atomic>
-#include <vector>
-#include <thread>
-#include <mutex>
-#include "Container.h"
 
+#include "Ship.h"
 
 using namespace std;
 
 class Buffer
 {
-private:
-
 public:
-    atomic<string> state = atomic<string>("");
-    Dock *myDock;
-    atomic_int progress = atomic_int(0);
+    string state;
+    mutex mtxState;
+    Ship *myShip;
+    atomic_int progress{0};
     mutex mtx;
     vector<Container *> containerList;
 
@@ -26,9 +20,5 @@ public:
     void waitingForShip();
     void workSimulation(int);
 
-
-    Buffer(Dock *);
-
-
-
+    Buffer();
 };
