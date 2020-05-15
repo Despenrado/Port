@@ -9,4 +9,6 @@ class Port
 {
 public:
     static vector<Dock *> dockList;
-}
+
+    static bool registerShip(Ship *);
+};

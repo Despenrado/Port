@@ -3,17 +3,27 @@
 
 Orders::Orders() {}
 
+void Orders::lifeCycle(){
+    while (true)
+    {
+        genereteContainer();
+    }
+    
+    
+}
+
 
 void Orders::genereteContainer(){
     
     int randomID = rand() % 100 + 1;
+    mtx.lock();
     while (existContainer(randomID))
     {
         randomID = rand() % 100 + 1;
     }
     
     containerList.push_back(new Container(rand() % 100 + 1));
-    
+    mtx.unlock();
 }
 
 bool Orders::existContainer(int id){
@@ -27,11 +37,15 @@ bool Orders::existContainer(int id){
 
 Container* Orders::giveContainer(){
     int random = rand() % containerList.size();
-     while (containerList.at(random)->isSend)
+    mtx.lock();
+    while (containerList.at(random)->isSend)
     {
         random = rand() % 100 + 1;
     }
     containerList.at(random)->isSend = true;
-    return containerList.at(random);
+    Container* tmp = containerList.at(random);
+    mtx.unlock();
+    return tmp;
+    
     
 }

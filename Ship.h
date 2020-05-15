@@ -1,10 +1,10 @@
-#include <iostream>
 #include <vector>
 #include <thread>
 #include <mutex>
 #include <atomic>
 #include "Orders.h"
 #include "Container.h"
+//#include "Port.h"
 
 
 
@@ -31,7 +31,7 @@ public:
     void unloadContainers();
     void loadContainers();
     void takeContainer();
-    void giveContainer();
+    Container* giveContainer();
     void lifeCycle();
-    void workSimulation(int times);
+    void workSimulation(int);
 };

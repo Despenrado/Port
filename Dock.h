@@ -1,4 +1,5 @@
-
+#include "Ship.h"
+#include "Buffer.h"
 
 using namespace std;
 
@@ -9,10 +10,12 @@ private:
 public:
     int id;
     bool isBusy;
-    int shipID;
-
+    Ship *ship;
+    Buffer *buffer;
+    mutex mtxBusy;
 
 
     Dock();
 
+    void registerShipInDock(Ship *);
 };

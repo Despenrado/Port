@@ -1,5 +1,5 @@
 #include "Ship.h"
-
+#include "Port.h"
 
 Ship::Ship(int id) {
     this->maxContainers = 5;
@@ -21,7 +21,9 @@ void Ship::lifeCycle(){
 }
 
 void Ship::loadContainers(){
-    while (maxContainers > containerList.size())
+
+    this->state = "loading";
+    while (maxContainers >= containerList.size())
     {
         takeContainer();
     }
@@ -30,13 +32,23 @@ void Ship::loadContainers(){
 void Ship::unloadContainers(){
     this->state = "unloading";
     workSimulation(rand() % 10 + 15);
-    containerList.clear();
-    // ждем пока кран отпустит
+    while (containerList.size() > 0)
+    {
+        workSimulation(rand() % 10 + 15);
+    }
+}
+
+Container* Ship::giveContainer(){
+    Container *tmp = this->containerList.at(this->containerList.size()-1);
+    this->containerList.pop_back();
+    return tmp;
 }
 
 void Ship::takeContainer(){
     this->state = "taking conteiner";
+    this->mtx.lock();
     containerList.push_back(Orders::giveContainer());
+    this->mtx.unlock();
 }
 
 void Ship::sail(){
@@ -45,13 +57,13 @@ void Ship::sail(){
 }
 
 void Ship::moor(){
-    this->state = "sailing";
+    this->state = "mooring";
     workSimulation(rand() % 10 + 15);
-    // передать докеру указатель на себя
+    Port::registerShip(this);
 }
 
 void Ship::unMoor(){
-    this->state = "sailing";
+    this->state = "unmooring";
     workSimulation(rand() % 10 + 15);
     // докер, удали на меня указатель
 }
