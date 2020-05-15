@@ -1,5 +1,7 @@
 #include <iostream>
 #include <vector>
+#include <thread>
+#include <mutex>
 #include <atomic>
 #include "Orders.h"
 #include "Container.h"
@@ -17,6 +19,8 @@ public:
     atomic<string> state;
     vector<Container *> containerList;
     int maxContainers;
+    int progress;
+    mutex mtx;
 
     Ship();
     Ship(int id);
@@ -28,6 +32,6 @@ public:
     void loadContainers();
     void takeContainer();
     void giveContainer();
-    
-
+    void lifeCycle();
+    void workSimulation(int times);
 };
