@@ -1,3 +1,7 @@
+#pragma once
+#include <vector>
+#include <mutex>
+#include <thread>
 
 using namespace std;
 
@@ -11,5 +15,4 @@ public:
 
     Container(int);
     Container();
-
 };

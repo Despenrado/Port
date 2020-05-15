@@ -1,3 +1,4 @@
+#pragma once
 #include "Dock.h"
 
 using namespace std;

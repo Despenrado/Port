@@ -1,7 +1,6 @@
-
+#pragma once
 
 using namespace std;
-
 
 class Railway
 {
@@ -12,8 +11,5 @@ public:
     bool isBusy;
     int trainID;
 
-
     Railway();
-
-
 };

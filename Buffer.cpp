@@ -1,5 +1,4 @@
 #include "Buffer.h"
-#include "Port.h"
 
 Buffer::Buffer()
 {
@@ -7,7 +6,7 @@ Buffer::Buffer()
 
 void Buffer::lifeCycle()
 {
-    while (Port::isRunning->load())
+    while (true)
     {
         waitingForShip();
         unloadShip();

@@ -11,7 +11,7 @@ Ship::Ship() {}
 
 void Ship::lifeCycle()
 {
-    while (Port::isRunning->load())
+    while (true)
     {
         loadContainers();
         sail();

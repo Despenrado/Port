@@ -1,40 +1,43 @@
 #include "Orders.h"
-#include "Port.h"
-
 
 Orders::Orders() {}
 
-void Orders::lifeCycle(){
-    while (Port::isRunning->load())
+void Orders::lifeCycle()
+{
+    while (true)
     {
         genereteContainer();
         workSimulation(20);
-    }   
+    }
 }
 
-
-void Orders::genereteContainer(){
+void Orders::genereteContainer()
+{
     int randomID = rand() % 100 + 1;
     mtx.lock();
     while (existContainer(randomID))
     {
         randomID = rand() % 100 + 1;
     }
-    
+
     containerList.push_back(new Container(rand() % 100 + 1));
     mtx.unlock();
 }
 
-bool Orders::existContainer(int id){
-    for(int i = 0; i < containerList.size(); i++){
-        if(containerList.at(i)->id==id){
+bool Orders::existContainer(int id)
+{
+    for (int i = 0; i < containerList.size(); i++)
+    {
+        if (containerList.at(i)->id == id)
+        {
             return true;
         }
     }
     return false;
 }
 
-Container* Orders::giveContainer(){
+Container *Orders::giveContainer()
+{
     int random = rand() % containerList.size();
     mtx.lock();
     while (containerList.at(random)->isSend)
@@ -42,13 +45,15 @@ Container* Orders::giveContainer(){
         random = rand() % 100 + 1;
     }
     containerList.at(random)->isSend = true;
-    Container* tmp = containerList.at(random);
+    Container *tmp = containerList.at(random);
     mtx.unlock();
     return tmp;
 }
 
-void Orders::genContainerList(int n){
-    for(int i = 0; i < n; i++){
+void Orders::genContainerList(int n)
+{
+    for (int i = 0; i < n; i++)
+    {
         Orders::genereteContainer();
     }
 }

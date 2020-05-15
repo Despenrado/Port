@@ -4,6 +4,10 @@
 #include <cstring>
 #include <string>
 #include "Port.h"
+#include "Orders.h"
+#include "Container.h"
+#include "Dock.h"
+#include "Ship.h"
 
 using namespace std;
 
