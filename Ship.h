@@ -1,6 +1,7 @@
 #include <iostream>
 #include <vector>
 #include <atomic>
+#include "Orders.h"
 #include "Container.h"
 
 
@@ -13,19 +14,20 @@ private:
     /* data */
 public:
     int id;
-    bool isFull;
     atomic<string> state;
     vector<Container *> containerList;
+    int maxContainers;
 
     Ship();
+    Ship(int id);
 
     void moor();
     void unMoor();
     void sail();
     void unloadContainers();
     void loadContainers();
-    void takeContainer(Container &);
-    void giveContainer(Container &);
+    void takeContainer();
+    void giveContainer();
     
 
 };
