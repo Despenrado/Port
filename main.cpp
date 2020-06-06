@@ -1,13 +1,13 @@
-#include "stdarg.h"
-#include "stddef.h"
-#include "ncurses.h"
-#include <cstring>
-#include <string>
-#include "Port.h"
-#include "Orders.h"
 #include "Container.h"
 #include "Dock.h"
+#include "Orders.h"
+#include "Port.h"
 #include "Ship.h"
+#include "ncurses.h"
+#include "stdarg.h"
+#include "stddef.h"
+#include <cstring>
+#include <string>
 
 using namespace std;
 
@@ -39,14 +39,13 @@ void keyboardFunc()
         {
             emergencyExit = true;
         }
-        //std::terminate();
     } while (key != 27 && !emergencyExit);
     *Port::isRunning = false;
 }
 
 void initialize()
 {
-    Orders::genContainerList(10);
+    Orders::genContainerList(3);
     Port::genDockList(1);
     for (int i = 0; i < 1; i++)
     {
@@ -56,6 +55,9 @@ void initialize()
 
 void launchThreads()
 {
+    threadContainerGenerator = new thread([]() {
+        Orders::lifeCycle();
+    });
     for (int i = 0; i < shipList.size(); i++)
     {
         mainMutex.lock();
@@ -64,17 +66,15 @@ void launchThreads()
         }));
         mainMutex.unlock();
     }
-    for (int i = 0; i < shipList.size(); i++)
+    //this_thread::sleep_for(chrono::milliseconds(99999999));
+    for (int i = 0; i < Port::dockList.size(); i++)
     {
         mainMutex.lock();
         craneThreadList.push_back(new thread([i]() {
-            Port::dockList.at(i)->buffer->lifeCycle();
+            Port::dockList.at(i)->shipCrane->lifeCycle();
         }));
         mainMutex.unlock();
     }
-    threadContainerGenerator = new thread([]() {
-        Orders::lifeCycle();
-    });
 }
 
 int main(int argc, char **argv)
@@ -83,7 +83,7 @@ int main(int argc, char **argv)
     srand(time(NULL));
 
     initialize();
-    //launchThreads();
+    launchThreads();
 
     int row, col;
     initscr();
@@ -100,9 +100,51 @@ int main(int argc, char **argv)
     int horizontalOffset = 2;
     int verticalOffset = 1;
     int fps = 0;
-
+    vector<string> ship_id;
+    vector<string> ship_status;
+    vector<string> ship_cont_listSize;
+    vector<string> dock_ship_cont_listSize;
+    vector<string> dock_ship_id;
+    vector<string> dock_ship_status;
+    vector<string> dock_shipCrane_status;
+    vector<string> dock_buffer_amount;
     do
     {
+        ////////////////////////////////////////////////////////////////////////////////////////
+        for (int i = 0; i < shipList.size(); i++)
+        {
+            shipList.at(i)->mtx.lock();
+            string tmp = shipList.at(i)->state;
+            if (tmp != "unloading")
+            {
+                ship_id.push_back(to_string(shipList.at(i)->id));
+                ship_status.push_back(tmp);
+                ship_cont_listSize.push_back(to_string(shipList.at(i)->containerList.size()));
+            }
+            shipList.at(i)->mtx.unlock();
+        }
+        for (int i = 0; i < Port::dockList.size(); i++)
+        {
+            Port::dockList.at(i)->shipCrane->mtx.lock();
+            dock_shipCrane_status.push_back(Port::dockList.at(i)->shipCrane->state);
+            dock_buffer_amount.push_back(to_string(Port::dockList.at(i)->shipCrane->containerList.size()));
+            if (Port::dockList.at(i)->ship != NULL)
+            {
+                Port::dockList.at(i)->ship->mtx.lock();
+                dock_ship_status.push_back(Port::dockList.at(i)->ship->state);
+                dock_ship_id.push_back(to_string(Port::dockList.at(i)->ship->id));
+                dock_ship_cont_listSize.push_back(to_string(Port::dockList.at(i)->ship->containerList.size()));
+                Port::dockList.at(i)->ship->mtx.unlock();
+            }
+            else
+            {
+                dock_ship_status.push_back("");
+                dock_ship_id.push_back("");
+                dock_ship_cont_listSize.push_back("");
+            }
+            Port::dockList.at(i)->shipCrane->mtx.unlock();
+        }
+        ////////////////////////////////////////////////////////////////////////////////////////
         getmaxyx(stdscr, row, col);
         if (fps >= INT32_MAX)
         {
@@ -181,7 +223,23 @@ int main(int argc, char **argv)
         mvwaddstr(stdscr, verticalOffset + 4, horizontalOffset + 135, "status");
         mvwaddstr(stdscr, verticalOffset + 5, horizontalOffset + 135, "conteiners");
         //////////////////////////////////////////////////////////////
-
+        for (int i = 0, i_v = verticalOffset + 2 + 4 + 1; i < ship_id.size(); i++, i_v += 4)
+        {
+            mvwaddstr(stdscr, i_v, horizontalOffset + 2, ship_id.at(i).c_str());
+            mvwaddstr(stdscr, i_v + 1, horizontalOffset + 2, ship_status.at(i).c_str());
+            mvwaddstr(stdscr, i_v + 2, horizontalOffset + 2, ship_cont_listSize.at(i).c_str());
+        }
+        for (int i = 0, i_v = verticalOffset + 10; i < dock_shipCrane_status.size(); i++, i_v += 10)
+        {
+            mvwaddstr(stdscr, i_v + 3, horizontalOffset + 15, dock_ship_id.at(i).c_str());
+            mvwaddstr(stdscr, i_v + 4, horizontalOffset + 15, dock_ship_status.at(i).c_str());
+            mvwaddstr(stdscr, i_v + 5, horizontalOffset + 15, dock_ship_cont_listSize.at(i).c_str());
+            mvwaddstr(stdscr, i_v + 3, horizontalOffset + 26, dock_shipCrane_status.at(i).c_str());
+            mvwaddstr(stdscr, i_v + 3, horizontalOffset + 36, "car");
+            mvwaddstr(stdscr, i_v + 8, horizontalOffset + 26, dock_buffer_amount.at(i).c_str());
+            mvwaddstr(stdscr, i_v + 8, horizontalOffset + 36, "buffer");
+            mvwaddstr(stdscr, i_v + 9, horizontalOffset + 36, "crane");
+        }
         //////////////////////////////////////////////////////////////
         attron(COLOR_PAIR(4));
         for (int i = 0; i < verticalOffset; i++)
@@ -202,6 +260,14 @@ int main(int argc, char **argv)
         }
         refresh();
         this_thread::sleep_for(chrono::milliseconds(16));
+        ship_id.clear();
+        ship_status.clear();
+        ship_cont_listSize.clear();
+        dock_ship_cont_listSize.clear();
+        dock_ship_id.clear();
+        dock_ship_status.clear();
+        dock_shipCrane_status.clear();
+        dock_buffer_amount.clear();
     } while (Port::isRunning->load());
 
     //keyboardThread.~thread();

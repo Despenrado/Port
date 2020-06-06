@@ -24,8 +24,7 @@ void Ship::lifeCycle()
 
 void Ship::loadContainers()
 {
-
-    this->state = "loading";
+    //std::cout << state << std::endl;
     while (maxContainers >= containerList.size())
     {
         takeContainer();
@@ -34,9 +33,9 @@ void Ship::loadContainers()
 
 void Ship::unloadContainers()
 {
-    this->state = "unloading";
-    workSimulation(rand() % 10 + 15);
     this->mtx.lock();
+    this->state = "unloading";
+    //std::cout << state << std::endl;
     while (containerList.size() > 0)
     {
         this->mtx.unlock();
@@ -55,47 +54,57 @@ Container *Ship::giveContainer()
 
 void Ship::takeContainer()
 {
-    this->state = "taking conteiner";
     this->mtx.lock();
-    containerList.push_back(Orders::giveContainer());
+    this->state = "taking conteiner";
+    this->mtx.unlock();
+    //std::cout << state << std::endl;
+    Container *tmp = Orders::giveContainer();
+    //std::cout << "lock_ship" << std::endl;
+    this->mtx.lock();
+    this->containerList.push_back(tmp);
     this->mtx.unlock();
 }
 
 void Ship::sail()
 {
+    this->mtx.lock();
     this->state = "sailing";
+    this->mtx.unlock();
+    //std::cout << state << std::endl;
     workSimulation(rand() % 10 + 15);
 }
 
 void Ship::moor()
 {
-    this->state = "mooring";
-    workSimulation(rand() % 10 + 15);
-    while (Port::registerShip(this))
+    do
     {
-        this->state = "waitin for mooring";
+        this->mtx.lock();
+        this->state = "waiting for mooring";
+        this->mtx.unlock();
         workSimulation(rand() % 10 + 15);
-    }
+    } while (!Port::registerShip(this));
 }
 
 void Ship::unMoor()
 {
-    this->state = "unmooring";
+    //std::cout << state << std::endl;
     workSimulation(rand() % 10 + 15);
-    while (Port::unregisterShip(this))
+    do
     {
-        this->state = "waitin for unmooring";
+        this->mtx.lock();
+        this->state = "waiting for unmooring";
+        this->mtx.unlock();
         workSimulation(rand() % 10 + 15);
-    }
+    } while (!Port::unregisterShip(this));
 }
 
 void Ship::workSimulation(int times)
 {
     for (int i = 0; i < times; i++)
     {
-        this_thread::sleep_for(chrono::milliseconds(1));
+        this_thread::sleep_for(chrono::milliseconds(100));
         progress = float(i * 100) / times;
-        this_thread::sleep_for(chrono::milliseconds(1));
+        this_thread::sleep_for(chrono::milliseconds(100));
     }
     progress = 0;
 }

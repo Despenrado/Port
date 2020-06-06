@@ -1,4 +1,5 @@
 #include "Orders.h"
+#include <iostream>
 
 Orders::Orders() {}
 
@@ -7,20 +8,25 @@ void Orders::lifeCycle()
     while (true)
     {
         genereteContainer();
-        workSimulation(20);
     }
 }
 
 void Orders::genereteContainer()
 {
-    int randomID = rand() % 100 + 1;
+    //std::cout << "lock_cont10" << std::endl;
+    int randomID = rand() % 100;
+    workSimulation(10);
     mtx.lock();
+    //std::cout << "lock_cont1" << std::endl;
     while (existContainer(randomID))
     {
-        randomID = rand() % 100 + 1;
+        mtx.unlock();
+        randomID = rand() % 100;
+        workSimulation(10);
+        mtx.lock();
     }
-
-    containerList.push_back(new Container(rand() % 100 + 1));
+    containerList.push_back(new Container(randomID));
+    //std::cout << containerList.size() << " : " << randomID << std::endl;
     mtx.unlock();
 }
 
@@ -38,11 +44,19 @@ bool Orders::existContainer(int id)
 
 Container *Orders::giveContainer()
 {
-    int random = rand() % containerList.size();
+    //std::cout << "lock_cont20" << std::endl;
     mtx.lock();
+    //std::cout << "lock_cont2" << std::endl;
+    int random = rand() % containerList.size();
+    //std::cout << random << std::endl;
+    workSimulation(15);
     while (containerList.at(random)->isSend)
     {
-        random = rand() % 100 + 1;
+        mtx.unlock();
+        random = rand() % containerList.size();
+        //std::cout << random << " : " << containerList.size() << std::endl;
+        workSimulation(1);
+        mtx.lock();
     }
     containerList.at(random)->isSend = true;
     Container *tmp = containerList.at(random);
@@ -62,6 +76,6 @@ void Orders::workSimulation(int times)
 {
     for (int i = 0; i < times; i++)
     {
-        this_thread::sleep_for(chrono::milliseconds(1));
+        this_thread::sleep_for(chrono::milliseconds(100));
     }
 }

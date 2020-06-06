@@ -1,8 +1,8 @@
 #pragma once
-#include <iostream>
-#include <atomic>
-#include <vector>
 #include "Container.h"
+// #include <atomic>
+#include <iostream>
+#include <vector>
 
 using namespace std;
 
@@ -12,7 +12,7 @@ class Train
 public:
     int id;
     bool isFull();
-    atomic<string> state;
+    // atomic<string> state;
     vector<Container *> containerList;
 
     Train();

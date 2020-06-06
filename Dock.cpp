@@ -2,16 +2,17 @@
 
 Dock::Dock()
 {
-    this->buffer = new Buffer();
+    this->shipCrane = new ShipCrane();
 }
 
 void Dock::registerShipInDock(Ship *ship)
 {
-    this->buffer->myShip = ship;
+    this->shipCrane->myShip = ship;
     this->ship = ship;
 }
 
 void Dock::unregisterShipInDock()
 {
+    this->shipCrane->myShip = NULL;
     this->ship = NULL;
 }
