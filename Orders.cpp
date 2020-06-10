@@ -7,7 +7,7 @@ void Orders::lifeCycle()
 {
     while (true)
     {
-        genereteContainer();
+        //genereteContainer();
     }
 }
 
@@ -22,7 +22,7 @@ void Orders::genereteContainer()
     {
         mtx.unlock();
         randomID = rand() % 100;
-        workSimulation(10);
+        workSimulation(5);
         mtx.lock();
     }
     containerList.push_back(new Container(randomID));
@@ -45,22 +45,25 @@ bool Orders::existContainer(int id)
 Container *Orders::giveContainer()
 {
     //std::cout << "lock_cont20" << std::endl;
-    mtx.lock();
     //std::cout << "lock_cont2" << std::endl;
-    int random = rand() % containerList.size();
+    int random = containerList.size() - 1; //= rand() % containerList.size();
     //std::cout << random << std::endl;
     workSimulation(15);
+    containerList.at(random)->mtx.lock();
     while (containerList.at(random)->isSend)
     {
+        containerList.at(random)->mtx.unlock();
         mtx.unlock();
-        random = rand() % containerList.size();
-        //std::cout << random << " : " << containerList.size() << std::endl;
         workSimulation(1);
         mtx.lock();
+        random = rand() % containerList.size();
+        std::cout << random << " : " << containerList.size() << std::endl;
+        containerList.at(random)->mtx.lock();
+        std::cout << random << " : " << containerList.size() << std::endl;
     }
     containerList.at(random)->isSend = true;
     Container *tmp = containerList.at(random);
-    mtx.unlock();
+    containerList.at(random)->mtx.unlock();
     return tmp;
 }
 
@@ -68,8 +71,33 @@ void Orders::genContainerList(int n)
 {
     for (int i = 0; i < n; i++)
     {
-        Orders::genereteContainer();
+        int randomID = rand() % 100;
+        while (existContainer(randomID))
+        {
+            randomID = rand() % 100;
+        }
+        containerList.push_back(new Container(randomID));
     }
+}
+
+void Orders::delContainer(int id)
+{
+    mtx.lock();
+    for (int i = 0; i < containerList.size(); i++)
+    {
+        containerList.at(i)->mtx.lock();
+        if (containerList.at(i)->id == id)
+        {
+            Container *tmp = containerList.at(i);
+            containerList.erase(containerList.begin() + i);
+            tmp->mtx.unlock();
+            delete (tmp);
+            mtx.unlock();
+            return;
+        }
+        containerList.at(i)->mtx.unlock();
+    }
+    mtx.unlock();
 }
 
 void Orders::workSimulation(int times)

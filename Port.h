@@ -11,6 +11,8 @@ public:
 
     static bool registerShip(Ship *);
     static bool unregisterShip(Ship *);
+    static vector<int> ship_order;
+    static mutex mtx;
 
     static void genDockList(int);
 };

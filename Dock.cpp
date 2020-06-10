@@ -3,6 +3,7 @@
 Dock::Dock()
 {
     this->shipCrane = new ShipCrane();
+    this->bufferCrane = new BufferCrane(shipCrane->dockBuffer);
 }
 
 void Dock::registerShipInDock(Ship *ship)

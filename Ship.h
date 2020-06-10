@@ -1,9 +1,9 @@
 #pragma once
-#include <vector>
-#include <thread>
-#include <mutex>
-#include <atomic>
 #include "Orders.h"
+#include <atomic>
+#include <mutex>
+#include <thread>
+#include <vector>
 
 using namespace std;
 
@@ -17,6 +17,7 @@ public:
     mutex mtxState;
     vector<Container *> containerList;
     int maxContainers;
+    int waitingTime;
     atomic_int progress{0};
     mutex mtx;
 

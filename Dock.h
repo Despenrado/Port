@@ -1,4 +1,5 @@
 #pragma once
+#include "BufferCrane.h"
 #include "ShipCrane.h"
 
 using namespace std;
@@ -12,6 +13,7 @@ public:
     bool isBusy;
     Ship *ship;
     ShipCrane *shipCrane;
+    BufferCrane *bufferCrane;
     mutex mtxBusy;
 
     Dock();

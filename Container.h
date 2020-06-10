@@ -11,6 +11,7 @@ class Container
 private:
     /* data */
 public:
+    mutex mtx;
     int id;
     bool isSend;
 

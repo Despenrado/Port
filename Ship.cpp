@@ -3,7 +3,7 @@
 
 Ship::Ship(int id)
 {
-    this->maxContainers = 5;
+    this->maxContainers = 1;
     this->id = id;
 }
 
@@ -47,8 +47,10 @@ void Ship::unloadContainers()
 
 Container *Ship::giveContainer()
 {
+    this->mtx.lock();
     Container *tmp = this->containerList.at(this->containerList.size() - 1);
     this->containerList.pop_back();
+    this->mtx.unlock();
     return tmp;
 }
 
@@ -58,7 +60,9 @@ void Ship::takeContainer()
     this->state = "taking conteiner";
     this->mtx.unlock();
     //std::cout << state << std::endl;
+    Orders::mtx.lock();
     Container *tmp = Orders::giveContainer();
+    Orders::mtx.unlock();
     //std::cout << "lock_ship" << std::endl;
     this->mtx.lock();
     this->containerList.push_back(tmp);
@@ -67,22 +71,25 @@ void Ship::takeContainer()
 
 void Ship::sail()
 {
+    std::cout << "unmooring6" << std::endl;
     this->mtx.lock();
+    std::cout << "unmooring61" << std::endl;
     this->state = "sailing";
     this->mtx.unlock();
+    std::cout << "unmooring7" << std::endl;
     //std::cout << state << std::endl;
     workSimulation(rand() % 10 + 15);
 }
 
 void Ship::moor()
 {
-    do
+    this->mtx.lock();
+    this->state = "register";
+    this->mtx.unlock();
+    while (!Port::registerShip(this))
     {
-        this->mtx.lock();
-        this->state = "waiting for mooring";
-        this->mtx.unlock();
         workSimulation(rand() % 10 + 15);
-    } while (!Port::registerShip(this));
+    }
 }
 
 void Ship::unMoor()
@@ -91,11 +98,15 @@ void Ship::unMoor()
     workSimulation(rand() % 10 + 15);
     do
     {
+        std::cout << "unregister" << std::endl;
         this->mtx.lock();
-        this->state = "waiting for unmooring";
+        this->state = "unregister";
         this->mtx.unlock();
         workSimulation(rand() % 10 + 15);
+        Port::mtx.lock();
     } while (!Port::unregisterShip(this));
+    Port::mtx.unlock();
+    std::cout << "unmooring5" << std::endl;
 }
 
 void Ship::workSimulation(int times)
