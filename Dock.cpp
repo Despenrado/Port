@@ -4,7 +4,7 @@
 Dock::Dock()
 {
     this->shipCrane = new ShipCrane();
-    this->bufferCrane = new BufferCrane(shipCrane->dockBuffer);
+    this->bufferCrane = new BufferCrane(shipCrane->buffer);
 }
 
 void Dock::registerShipInDock(Ship *ship)
@@ -19,7 +19,7 @@ void Dock::unregisterShipInDock()
     this->ship = NULL;
 }
 
-bool Dock::registerCarInDock(Car *newCar)
+bool Dock::registerCar(Car *newCar)
 {
 
     this->mtxBusy.lock();
@@ -38,12 +38,13 @@ bool Dock::registerCarInDock(Car *newCar)
     this->bufferCrane->mtx.lock();
     if (this->bufferCrane->myCar == NULL)
     {
-        this->bufferCrane->mtx.unlock();
         newCar->mtx.lock();
         newCar->state = "parking";
+        newCar->dockNum = -1;
         newCar->mtx.unlock();
-        this->bufferCrane->registerCarInDock(newCar);
+        this->bufferCrane->registerCar(newCar);
         this->car_order.erase(this->car_order.begin());
+        this->bufferCrane->mtx.unlock();
         this->mtxBusy.unlock();
         newCar->workSimulation(10);
         return true;
@@ -53,9 +54,8 @@ bool Dock::registerCarInDock(Car *newCar)
     return false;
 }
 
-bool Dock::unregisterCarInDock(Car *oldCar)
+bool Dock::unregisterCar(Car *oldCar)
 {
-    oldCar->workSimulation(10);
-    this->bufferCrane->unregisterCarInDock();
+    this->bufferCrane->unregisterCar();
     return true;
 }

@@ -21,6 +21,6 @@ public:
 
     void registerShipInDock(Ship *);
     void unregisterShipInDock();
-    bool unregisterCarInDock(Car *);
-    bool registerCarInDock(Car *);
+    bool unregisterCar(Car *);
+    bool registerCar(Car *);
 };

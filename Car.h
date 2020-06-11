@@ -18,6 +18,7 @@ public:
     Container *currentContainer;
     atomic_int progress{0};
     mutex mtx;
+    int dockNum;
 
     Car();
     Car(int id);

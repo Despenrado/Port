@@ -2,7 +2,7 @@
 
 ShipCrane::ShipCrane()
 {
-    dockBuffer = new DockBuffer();
+    buffer = new Buffer();
     this->myShip = NULL;
     this->currentContainer = NULL;
 }
@@ -24,7 +24,7 @@ void ShipCrane::unloadShip()
     {
         //std::cout << "ShipCrane2" << std::endl;
         myShip->mtx.lock();
-        while (myShip->containerList.size() > 0)
+        while (myShip != NULL && myShip->containerList.size() > 0)
         {
             //std::cout << "ShipCrane3" << std::endl;
             myShip->mtx.unlock();
@@ -33,9 +33,15 @@ void ShipCrane::unloadShip()
             takeContainer();
             putContainer();
             this->mtx.lock();
-            myShip->mtx.lock();
+            if (myShip != NULL)
+            {
+                myShip->mtx.lock();
+            }
         }
-        myShip->mtx.unlock();
+        if (myShip != NULL)
+        {
+            myShip->mtx.unlock();
+        }
         this->mtx.unlock();
         return;
     }
@@ -49,7 +55,9 @@ void ShipCrane::takeContainer()
     this->state = "taking container";
     if (myShip != NULL)
     {
+        myShip->mtx.lock();
         currentContainer = myShip->giveContainer();
+        myShip->mtx.unlock();
         this->state = "taking container:" + to_string(currentContainer->id);
     }
     this->mtx.unlock();
@@ -61,14 +69,14 @@ void ShipCrane::putContainer()
     this->mtx.lock();
     this->state = "putting container:" + to_string(currentContainer->id);
     this->mtx.unlock();
-    dockBuffer->work_mtx.lock();
-    dockBuffer->mtx.lock();
+    buffer->work_mtx.lock();
+    buffer->mtx.lock();
     this->mtx.lock();
-    dockBuffer->containerList.push_back(currentContainer);
+    buffer->containerList.push_back(currentContainer);
     this->mtx.unlock();
-    dockBuffer->mtx.unlock();
+    buffer->mtx.unlock();
     workSimulation(rand() % 10 + 15);
-    dockBuffer->work_mtx.unlock();
+    buffer->work_mtx.unlock();
 }
 
 void ShipCrane::waitingForShip()

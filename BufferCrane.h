@@ -1,6 +1,6 @@
 #pragma once
+#include "Buffer.h"
 #include "Car.h"
-#include "DockBuffer.h"
 #include <atomic>
 
 using namespace std;
@@ -15,14 +15,14 @@ public:
     Container *currentContainer;
     Car *myCar;
     //vector<Container *> containerList;
-    DockBuffer *dockBuffer;
+    Buffer *buffer;
 
     void takeContainer();
     void putToCar();
     void lifeCycle();
     void workSimulation(int);
-    void registerCarInDock(Car *);
-    void unregisterCarInDock();
+    void registerCar(Car *);
+    void unregisterCar();
 
-    BufferCrane(DockBuffer *);
+    BufferCrane(Buffer *);
 };

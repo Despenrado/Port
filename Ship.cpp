@@ -47,10 +47,8 @@ void Ship::unloadContainers()
 
 Container *Ship::giveContainer()
 {
-    this->mtx.lock();
     Container *tmp = this->containerList.at(this->containerList.size() - 1);
     this->containerList.pop_back();
-    this->mtx.unlock();
     return tmp;
 }
 
@@ -101,9 +99,7 @@ void Ship::unMoor()
         this->state = "unregister";
         this->mtx.unlock();
         workSimulation(rand() % 10 + 15);
-        Port::mtx.lock();
     } while (!Port::unregisterShip(this));
-    Port::mtx.unlock();
     //std::cout << "unmooring5" << std::endl;
 }
 

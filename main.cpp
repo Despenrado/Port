@@ -13,6 +13,7 @@ using namespace std;
 // static variables
 atomic_bool *Port::isRunning = new atomic_bool(true);
 vector<Dock *> Port::dockList = vector<Dock *>();
+vector<MainBuffer *> Port::mainBufferList = vector<MainBuffer *>();
 vector<int> Port::ship_order = vector<int>();
 mutex Port::mtx;
 mutex Orders::mtx;
@@ -29,8 +30,10 @@ vector<Ship *> shipList = vector<Ship *>();
 vector<Car *> carList = vector<Car *>();
 vector<thread *> shipTreadList = vector<thread *>();
 vector<thread *> carTreadList = vector<thread *>();
-vector<thread *> craneThreadList = vector<thread *>();       //buffer
+vector<thread *> shipCraneThreadList = vector<thread *>();   //buffer
 vector<thread *> bufferCraneThreadList = vector<thread *>(); //bufferCrane
+vector<thread *> carCraneThreadList = vector<thread *>();
+vector<thread *> mainBufferCraneThreadList = vector<thread *>();
 thread *threadContainerGenerator;
 
 void keyboardFunc()
@@ -51,11 +54,12 @@ void initialize()
 {
     Orders::genContainerList(10);
     Port::genDockList(2);
+    Port::genMainBufferList(2);
     for (int i = 0; i < 4; i++)
     {
         shipList.push_back(new Ship(i));
     }
-    for (int i = 0; i < 8; i++)
+    for (int i = 0; i < 3; i++)
     {
         carList.push_back(new Car(i));
     }
@@ -86,11 +90,22 @@ void launchThreads()
     for (int i = 0; i < Port::dockList.size(); i++)
     {
         mainMutex.lock();
-        craneThreadList.push_back(new thread([i]() {
+        shipCraneThreadList.push_back(new thread([i]() {
             Port::dockList.at(i)->shipCrane->lifeCycle();
         }));
         bufferCraneThreadList.push_back(new thread([i]() {
             Port::dockList.at(i)->bufferCrane->lifeCycle();
+        }));
+        mainMutex.unlock();
+    }
+    for (int i = 0; i < Port::mainBufferList.size(); i++)
+    {
+        mainMutex.lock();
+        shipCraneThreadList.push_back(new thread([i]() {
+            Port::mainBufferList.at(i)->carCrane->lifeCycle();
+        }));
+        bufferCraneThreadList.push_back(new thread([i]() {
+            Port::mainBufferList.at(i)->bufferCrane->lifeCycle();
         }));
         mainMutex.unlock();
     }
@@ -134,6 +149,13 @@ int main(int argc, char **argv)
     vector<string> dock_shipCrane_status;
     vector<string> dock_buffer_amount;
     vector<string> dock_bufferCrane_status;
+    vector<string> mainBuffer_carCrane_status;
+    vector<string> mainBuffer_bufferCrane_status;
+    vector<string> mainBuffer_carLoad_id;
+    vector<string> mainBuffer_carLoad_status;
+    vector<string> mainBuffer_carUnload_id;
+    vector<string> mainBuffer_carUnload_status;
+    vector<string> mainBuffer_buffer_amount;
     do
     {
         ////////////////////////////////////////////////////////////////////////////////////////
@@ -177,7 +199,7 @@ int main(int argc, char **argv)
             carList.at(i)->mtx.lock();
             string tmp = carList.at(i)->state;
             //std::cout << "main1" << std::endl;
-            if (tmp != "unloading" && tmp != "loading1")
+            if (tmp != "unloading2" && tmp != "loading2")
             {
                 car_id.push_back(to_string(carList.at(i)->id));
                 car_status.push_back(tmp);
@@ -201,11 +223,11 @@ int main(int argc, char **argv)
             //std::cout << "main6" << std::endl;
             dock_shipCrane_status.push_back(Port::dockList.at(i)->shipCrane->state);
             //std::cout << "main4" << std::endl;
-            Port::dockList.at(i)->shipCrane->dockBuffer->mtx.lock();
+            Port::dockList.at(i)->shipCrane->buffer->mtx.lock();
             //std::cout << "main7" << std::endl;
-            dock_buffer_amount.push_back(to_string(Port::dockList.at(i)->shipCrane->dockBuffer->containerList.size()));
+            dock_buffer_amount.push_back(to_string(Port::dockList.at(i)->shipCrane->buffer->containerList.size()));
             //std::cout << "main3" << std::endl;
-            Port::dockList.at(i)->shipCrane->dockBuffer->mtx.unlock();
+            Port::dockList.at(i)->shipCrane->buffer->mtx.unlock();
             //std::cout << "main8" << std::endl;
             if (Port::dockList.at(i)->ship != NULL)
             {
@@ -234,6 +256,42 @@ int main(int argc, char **argv)
                 dock_car_id.push_back("");
             }
             Port::dockList.at(i)->shipCrane->mtx.unlock();
+        }
+        for (int i = 0; i < Port::mainBufferList.size(); i++)
+        {
+            Port::mainBufferList.at(i)->bufferCrane->mtx.lock();
+            mainBuffer_bufferCrane_status.push_back(Port::mainBufferList.at(i)->bufferCrane->state);
+            Port::mainBufferList.at(i)->bufferCrane->mtx.unlock();
+            Port::mainBufferList.at(i)->carCrane->mtx.lock();
+            mainBuffer_carCrane_status.push_back(Port::mainBufferList.at(i)->carCrane->state);
+            Port::mainBufferList.at(i)->carCrane->buffer->mtx.lock();
+            mainBuffer_buffer_amount.push_back(to_string(Port::mainBufferList.at(i)->carCrane->buffer->containerList.size()));
+            Port::mainBufferList.at(i)->carCrane->buffer->mtx.unlock();
+            if (Port::mainBufferList.at(i)->car != NULL)
+            {
+                Port::mainBufferList.at(i)->car->mtx.lock();
+                mainBuffer_carUnload_status.push_back(Port::mainBufferList.at(i)->car->state);
+                mainBuffer_carUnload_id.push_back(to_string(Port::mainBufferList.at(i)->car->id));
+                Port::mainBufferList.at(i)->car->mtx.unlock();
+            }
+            else
+            {
+                mainBuffer_carUnload_status.push_back("");
+                mainBuffer_carUnload_id.push_back("");
+            }
+            if (Port::mainBufferList.at(i)->bufferCrane->myCar != NULL)
+            {
+                Port::mainBufferList.at(i)->bufferCrane->myCar->mtx.lock();
+                mainBuffer_carLoad_status.push_back(Port::mainBufferList.at(i)->bufferCrane->myCar->state);
+                mainBuffer_carLoad_id.push_back(to_string(Port::mainBufferList.at(i)->bufferCrane->myCar->id));
+                Port::mainBufferList.at(i)->bufferCrane->myCar->mtx.unlock();
+            }
+            else
+            {
+                mainBuffer_carLoad_status.push_back("");
+                mainBuffer_carLoad_id.push_back("");
+            }
+            Port::mainBufferList.at(i)->carCrane->mtx.unlock();
         }
         ////////////////////////////////////////////////////////////////////////////////////////
         getmaxyx(stdscr, row, col);
@@ -294,6 +352,31 @@ int main(int argc, char **argv)
         mvhline(verticalOffset + 7, horizontalOffset + 49, '-', 49);
         mvhline(verticalOffset + 9, horizontalOffset + 49, '-', 49);
         mvhline(verticalOffset + 13, horizontalOffset + 49, '-', 49);
+
+        // mainBuffer
+        for (int i = 0; i < 2; i++)
+        {
+            mvhline(verticalOffset + 15, horizontalOffset + 49 + i * 25, '-', 24);
+            mvhline(verticalOffset + 18, horizontalOffset + 49 + i * 25, '-', 24);
+            mvhline(verticalOffset + 21, horizontalOffset + 49 + i * 25, '-', 24);
+            mvhline(verticalOffset + 24, horizontalOffset + 49 + i * 25, '-', 24);
+            mvhline(verticalOffset + 26, horizontalOffset + 49 + i * 25, '-', 24);
+            mvhline(verticalOffset + 29, horizontalOffset + 49 + i * 25, '-', 24);
+            mvhline(verticalOffset + 32, horizontalOffset + 49 + i * 25, '-', 24);
+            mvhline(verticalOffset + 35, horizontalOffset + 49 + i * 25, '-', 24);
+        }
+        mvvline(verticalOffset + 15, horizontalOffset + 48, '|', 10);
+        mvvline(verticalOffset + 15, horizontalOffset + 72, '|', 10);
+        mvvline(verticalOffset + 16, horizontalOffset + 60, '|', 5);
+        mvvline(verticalOffset + 15, horizontalOffset + 74, '|', 10);
+        mvvline(verticalOffset + 16, horizontalOffset + 86, '|', 5);
+        mvvline(verticalOffset + 15, horizontalOffset + 98, '|', 10);
+        mvvline(verticalOffset + 26, horizontalOffset + 48, '|', 10);
+        mvvline(verticalOffset + 26, horizontalOffset + 72, '|', 10);
+        mvvline(verticalOffset + 27, horizontalOffset + 60, '|', 5);
+        mvvline(verticalOffset + 26, horizontalOffset + 74, '|', 10);
+        mvvline(verticalOffset + 27, horizontalOffset + 86, '|', 5);
+        mvvline(verticalOffset + 26, horizontalOffset + 98, '|', 10);
 
         // train
         mvvline(verticalOffset + 1, horizontalOffset + 100, '|', row - verticalOffset - 3);
@@ -362,6 +445,31 @@ int main(int argc, char **argv)
             mvwaddstr(stdscr, i_v + 8, horizontalOffset + 26, dock_buffer_amount.at(i).c_str());
             mvwaddstr(stdscr, i_v + 8, horizontalOffset + 36, dock_bufferCrane_status.at(i).c_str());
         }
+        int i_v = verticalOffset + 15;
+        for (int i = 0; i < mainBuffer_buffer_amount.size(); i++)
+        {
+            if (i % 2 == 0)
+            {
+                mvwaddstr(stdscr, i_v + verticalOffset, horizontalOffset + 49, mainBuffer_carUnload_id.at(i).c_str());
+                mvwaddstr(stdscr, i_v + verticalOffset + 1, horizontalOffset + 49, mainBuffer_carUnload_status.at(i).c_str());
+                mvwaddstr(stdscr, i_v + verticalOffset, horizontalOffset + 61, mainBuffer_carLoad_id.at(i).c_str());
+                mvwaddstr(stdscr, i_v + verticalOffset + 1, horizontalOffset + 61, mainBuffer_carLoad_status.at(i).c_str());
+                mvwaddstr(stdscr, i_v + verticalOffset + 3, horizontalOffset + 49, mainBuffer_carCrane_status.at(i).c_str());
+                mvwaddstr(stdscr, i_v + verticalOffset + 3, horizontalOffset + 61, mainBuffer_bufferCrane_status.at(i).c_str());
+                mvwaddstr(stdscr, i_v + verticalOffset + 6, horizontalOffset + 49, mainBuffer_buffer_amount.at(i).c_str());
+            }
+            else
+            {
+                mvwaddstr(stdscr, i_v + verticalOffset + 0, horizontalOffset + 75, mainBuffer_carUnload_id.at(i).c_str());
+                mvwaddstr(stdscr, i_v + verticalOffset + 1, horizontalOffset + 75, mainBuffer_carUnload_status.at(i).c_str());
+                mvwaddstr(stdscr, i_v + verticalOffset + 0, horizontalOffset + 87, mainBuffer_carLoad_id.at(i).c_str());
+                mvwaddstr(stdscr, i_v + verticalOffset + 1, horizontalOffset + 87, mainBuffer_carLoad_status.at(i).c_str());
+                mvwaddstr(stdscr, i_v + verticalOffset + 3, horizontalOffset + 75, mainBuffer_carCrane_status.at(i).c_str());
+                mvwaddstr(stdscr, i_v + verticalOffset + 3, horizontalOffset + 87, mainBuffer_bufferCrane_status.at(i).c_str());
+                mvwaddstr(stdscr, i_v + verticalOffset + 6, horizontalOffset + 75, mainBuffer_buffer_amount.at(i).c_str());
+                i_v += 11;
+            }
+        }
         //
         //////////////////////////////////////////////////////////////
         //
@@ -397,6 +505,13 @@ int main(int argc, char **argv)
         dock_shipCrane_status.clear();
         dock_buffer_amount.clear();
         dock_bufferCrane_status.clear();
+        mainBuffer_carCrane_status.clear();
+        mainBuffer_bufferCrane_status.clear();
+        mainBuffer_carLoad_id.clear();
+        mainBuffer_carLoad_status.clear();
+        mainBuffer_carUnload_id.clear();
+        mainBuffer_carUnload_status.clear();
+        mainBuffer_buffer_amount.clear();
     } while (Port::isRunning->load());
 
     //keyboardThread.~thread();

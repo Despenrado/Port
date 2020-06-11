@@ -2,9 +2,9 @@
 #include "Orders.h"
 #include <sstream>
 
-BufferCrane::BufferCrane(DockBuffer *tmp)
+BufferCrane::BufferCrane(Buffer *tmp)
 {
-    this->dockBuffer = tmp;
+    this->buffer = tmp;
     this->myCar = NULL;
     this->currentContainer = NULL;
 }
@@ -22,32 +22,34 @@ void BufferCrane::takeContainer()
 {
     this->mtx.lock();
     this->state = "waiting";
-    this->mtx.unlock();
-    dockBuffer->work_mtx.lock();
-    dockBuffer->mtx.lock();
-    while (dockBuffer->containerList.size() == 0)
+
+    buffer->work_mtx.lock();
+    buffer->mtx.lock();
+    while (buffer->containerList.size() == 0)
     {
         //std::cout << 111111111111111 << std::endl;
-        dockBuffer->mtx.unlock();
-        dockBuffer->work_mtx.unlock();
+        buffer->mtx.unlock();
+        buffer->work_mtx.unlock();
+        this->mtx.unlock();
         //std::cout << 222222222222222 << std::endl;
         workSimulation(1);
         //std::cout << 55555555555555 << std::endl;
-        dockBuffer->work_mtx.lock();
-        dockBuffer->mtx.lock();
+        buffer->work_mtx.lock();
+        this->mtx.lock();
+        buffer->mtx.lock();
         //std::cout << "containetList-size" << std::endl;
         //std::cout << 66666666666666 << std::endl;
     }
     //std::cout << 222222222222222 << std::endl;
-    currentContainer = dockBuffer->containerList.at(0);
-    dockBuffer->containerList.erase(dockBuffer->containerList.begin());
+    currentContainer = buffer->containerList.at(0);
+    buffer->containerList.erase(buffer->containerList.begin());
     this->mtx.lock();
     //std::cout << 3333333333333333 << std::endl;
     this->state = " taking container " + to_string(currentContainer->id);
     this->mtx.unlock();
-    dockBuffer->mtx.unlock();
+    buffer->mtx.unlock();
     workSimulation(10);
-    dockBuffer->work_mtx.unlock();
+    buffer->work_mtx.unlock();
 }
 
 void BufferCrane::putToCar()
@@ -71,18 +73,14 @@ void BufferCrane::putToCar()
     this->mtx.unlock();
 }
 
-void BufferCrane::registerCarInDock(Car *car)
+void BufferCrane::registerCar(Car *car)
 {
-    this->mtx.lock();
     this->myCar = car;
-    this->mtx.unlock();
 }
 
-void BufferCrane::unregisterCarInDock()
+void BufferCrane::unregisterCar()
 {
-    this->mtx.lock();
     this->myCar = NULL;
-    this->mtx.unlock();
 }
 
 void BufferCrane::workSimulation(int times)

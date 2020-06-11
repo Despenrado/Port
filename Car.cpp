@@ -72,15 +72,29 @@ void Car::loadTrain()
 void Car::unloadDock()
 {
     this->mtx.lock();
+    this->state = "waiting B";
+    this->mtx.unlock();
+    while (!Port::registerMainBufferCarUnload(this))
+    {
+        workSimulation(rand() % 10 + 15);
+    }
+    this->mtx.lock();
     this->state = "unloading";
     while (currentContainer != NULL)
     {
         this->mtx.unlock();
         workSimulation(rand() % 10 + 15);
-        giveContainer();
+        //currentContainer = NULL;
         this->mtx.lock();
     }
     this->mtx.unlock();
+    do
+    {
+        this->mtx.lock();
+        this->state = "unparking";
+        this->mtx.unlock();
+        workSimulation(rand() % 10 + 15);
+    } while (!Port::unregisterMainBufferCarUnload(this));
 }
 
 void Car::unloadTrain()
@@ -92,12 +106,7 @@ void Car::unloadTrain()
 
 Container *Car::giveContainer()
 {
-    this->mtx.lock();
-    Container *tmp = this->currentContainer;
-    currentContainer = NULL;
-    Orders::delContainer(tmp->id);
-    this->mtx.unlock();
-    return NULL;
+    return this->currentContainer;
 }
 
 void Car::takeContainer(Container *container)
