@@ -22,6 +22,7 @@ public:
     void lifeCycle();
     void waitingForShip();
     void workSimulation(int);
+    void putContainer();
 
     ShipCrane();
 };

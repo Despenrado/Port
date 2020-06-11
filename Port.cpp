@@ -29,12 +29,12 @@ bool Port::registerShip(Ship *newShip)
             newShip->mtx.unlock();
             dockList.at(i)->registerShipInDock(newShip);
             dockList.at(i)->isBusy = true;
-            std::cout << "mooring1" << std::endl;
+            //std::cout << "mooring1" << std::endl;
             mtx.lock();
-            std::cout << "mooring2" << std::endl;
+            //std::cout << "mooring2" << std::endl;
             ship_order.erase(ship_order.begin());
             mtx.unlock();
-            std::cout << "mooring3" << std::endl;
+            //std::cout << "mooring3" << std::endl;
             dockList.at(i)->shipCrane->mtx.unlock();
             dockList.at(i)->mtxBusy.unlock();
             newShip->workSimulation(10);
@@ -57,24 +57,74 @@ bool Port::unregisterShip(Ship *oldShip)
             oldShip->mtx.lock();
             oldShip->state = "unmooring";
             oldShip->mtx.unlock();
-            std::cout << "unmooring" << std::endl;
+            //std::cout << "unmooring" << std::endl;
             dockList.at(i)->shipCrane->mtx.unlock();
             dockList.at(i)->mtxBusy.unlock();
             oldShip->workSimulation(10);
             dockList.at(i)->mtxBusy.lock();
             dockList.at(i)->shipCrane->mtx.lock();
             dockList.at(i)->unregisterShipInDock();
-            std::cout << "unmooring2" << std::endl;
+            //std::cout << "unmooring2" << std::endl;
             dockList.at(i)->isBusy = false;
-            std::cout << "unmooring3" << std::endl;
+            //std::cout << "unmooring3" << std::endl;
             dockList.at(i)->shipCrane->mtx.unlock();
             dockList.at(i)->mtxBusy.unlock();
-            std::cout << "unmooring4" << std::endl;
+            //std::cout << "unmooring4" << std::endl;
             return true;
         }
         dockList.at(i)->shipCrane->mtx.unlock();
         dockList.at(i)->mtxBusy.unlock();
     }
+    return false;
+}
+
+bool Port::registerDockCar(Car *newCar)
+{
+    mtx.lock();
+    int dockId = random() % dockList.size();
+    mtx.unlock();
+    return dockList.at(dockId)->registerCarInDock(newCar);
+}
+
+bool Port::registerMainBufferCar(Car *newCar)
+{
+    return false;
+}
+
+bool Port::registerRailWayCar(Car *newCar)
+{
+    return false;
+}
+
+bool Port::unregisterDockCar(Car *oldCar)
+{
+    mtx.lock();
+    for (int i = 0; i < dockList.size(); i++)
+    {
+        mtx.unlock();
+        dockList.at(i)->mtxBusy.lock();
+        dockList.at(i)->bufferCrane->mtx.lock();
+        if (dockList.at(i)->bufferCrane->myCar != NULL && dockList.at(i)->bufferCrane->myCar->id == oldCar->id)
+        {
+            dockList.at(i)->bufferCrane->mtx.unlock();
+            dockList.at(i)->mtxBusy.unlock();
+            return dockList.at(i)->unregisterCarInDock(oldCar);
+        }
+        dockList.at(i)->bufferCrane->mtx.unlock();
+        dockList.at(i)->mtxBusy.unlock();
+        mtx.lock();
+    }
+    mtx.unlock();
+    return false;
+}
+
+bool Port::unregisterMainBufferCar(Car *odlCar)
+{
+    return false;
+}
+
+bool Port::unregisterRailWayCar(Car *oldCar)
+{
     return false;
 }
 

@@ -60,9 +60,7 @@ void Ship::takeContainer()
     this->state = "taking conteiner";
     this->mtx.unlock();
     //std::cout << state << std::endl;
-    Orders::mtx.lock();
     Container *tmp = Orders::giveContainer();
-    Orders::mtx.unlock();
     //std::cout << "lock_ship" << std::endl;
     this->mtx.lock();
     this->containerList.push_back(tmp);
@@ -71,12 +69,12 @@ void Ship::takeContainer()
 
 void Ship::sail()
 {
-    std::cout << "unmooring6" << std::endl;
+    //std::cout << "unmooring6" << std::endl;
     this->mtx.lock();
-    std::cout << "unmooring61" << std::endl;
+    //std::cout << "unmooring61" << std::endl;
     this->state = "sailing";
     this->mtx.unlock();
-    std::cout << "unmooring7" << std::endl;
+    //std::cout << "unmooring7" << std::endl;
     //std::cout << state << std::endl;
     workSimulation(rand() % 10 + 15);
 }
@@ -98,7 +96,7 @@ void Ship::unMoor()
     workSimulation(rand() % 10 + 15);
     do
     {
-        std::cout << "unregister" << std::endl;
+        //std::cout << "unregister" << std::endl;
         this->mtx.lock();
         this->state = "unregister";
         this->mtx.unlock();
@@ -106,7 +104,7 @@ void Ship::unMoor()
         Port::mtx.lock();
     } while (!Port::unregisterShip(this));
     Port::mtx.unlock();
-    std::cout << "unmooring5" << std::endl;
+    //std::cout << "unmooring5" << std::endl;
 }
 
 void Ship::workSimulation(int times)

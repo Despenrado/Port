@@ -7,7 +7,7 @@ void Orders::lifeCycle()
 {
     while (true)
     {
-        //genereteContainer();
+        genereteContainer();
     }
 }
 
@@ -34,21 +34,25 @@ bool Orders::existContainer(int id)
 {
     for (int i = 0; i < containerList.size(); i++)
     {
+        containerList.at(i)->mtx.lock();
         if (containerList.at(i)->id == id)
         {
+            containerList.at(i)->mtx.unlock();
             return true;
         }
+        containerList.at(i)->mtx.unlock();
     }
     return false;
 }
 
 Container *Orders::giveContainer()
 {
+    workSimulation(15);
+    mtx.lock();
     //std::cout << "lock_cont20" << std::endl;
     //std::cout << "lock_cont2" << std::endl;
-    int random = containerList.size() - 1; //= rand() % containerList.size();
+    int random = rand() % containerList.size(); //= rand() % containerList.size();
     //std::cout << random << std::endl;
-    workSimulation(15);
     containerList.at(random)->mtx.lock();
     while (containerList.at(random)->isSend)
     {
@@ -57,13 +61,14 @@ Container *Orders::giveContainer()
         workSimulation(1);
         mtx.lock();
         random = rand() % containerList.size();
-        std::cout << random << " : " << containerList.size() << std::endl;
+        //std::cout << random << " : " << containerList.size() << std::endl;
         containerList.at(random)->mtx.lock();
-        std::cout << random << " : " << containerList.size() << std::endl;
+        //std::cout << random << " : " << containerList.size() << std::endl;
     }
     containerList.at(random)->isSend = true;
     Container *tmp = containerList.at(random);
     containerList.at(random)->mtx.unlock();
+    mtx.unlock();
     return tmp;
 }
 
@@ -88,10 +93,7 @@ void Orders::delContainer(int id)
         containerList.at(i)->mtx.lock();
         if (containerList.at(i)->id == id)
         {
-            Container *tmp = containerList.at(i);
             containerList.erase(containerList.begin() + i);
-            tmp->mtx.unlock();
-            delete (tmp);
             mtx.unlock();
             return;
         }

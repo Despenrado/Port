@@ -10,6 +10,12 @@ public:
     static vector<Dock *> dockList;
 
     static bool registerShip(Ship *);
+    static bool registerDockCar(Car *);
+    static bool registerMainBufferCar(Car *);
+    static bool registerRailWayCar(Car *);
+    static bool unregisterDockCar(Car *);
+    static bool unregisterMainBufferCar(Car *);
+    static bool unregisterRailWayCar(Car *);
     static bool unregisterShip(Ship *);
     static vector<int> ship_order;
     static mutex mtx;

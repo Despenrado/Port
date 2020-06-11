@@ -15,9 +15,12 @@ public:
     ShipCrane *shipCrane;
     BufferCrane *bufferCrane;
     mutex mtxBusy;
+    vector<int> car_order;
 
     Dock();
 
     void registerShipInDock(Ship *);
     void unregisterShipInDock();
+    bool unregisterCarInDock(Car *);
+    bool registerCarInDock(Car *);
 };

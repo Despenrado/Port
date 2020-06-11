@@ -1,4 +1,5 @@
 #pragma once
+#include "Car.h"
 #include "DockBuffer.h"
 #include <atomic>
 
@@ -12,6 +13,7 @@ public:
     atomic_int progress{0};
     mutex mtx;
     Container *currentContainer;
+    Car *myCar;
     //vector<Container *> containerList;
     DockBuffer *dockBuffer;
 
@@ -19,6 +21,8 @@ public:
     void putToCar();
     void lifeCycle();
     void workSimulation(int);
+    void registerCarInDock(Car *);
+    void unregisterCarInDock();
 
     BufferCrane(DockBuffer *);
 };
