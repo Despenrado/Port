@@ -1,6 +1,6 @@
 #pragma once
-#include "BufferCrane.h"
 #include "CarCrane.h"
+#include "MainBufferCrane.h"
 
 using namespace std;
 
@@ -13,7 +13,7 @@ public:
     bool isBusy;
     Car *car;
     CarCrane *carCrane;
-    BufferCrane *bufferCrane;
+    MainBufferCrane *bufferCrane;
     mutex mtxBusy;
     vector<int> car_order_load;
     vector<int> car_order_unload;

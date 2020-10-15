@@ -1,2 +1,2 @@
-g++ -o port -lncurses -pthread ../main.cpp ../Port.cpp ../ShipCrane.cpp ../Container.cpp ../Dock.cpp ../Orders.cpp ../Railway.cpp ../Ship.cpp ../Train.cpp ../TrainStation.cpp ../Buffer.cpp ../BufferCrane.cpp ../Car.cpp ../CarCrane.cpp ../MainBuffer.cpp
+g++ -o port -lncurses -pthread ../main.cpp ../Port.cpp ../ShipCrane.cpp ../Container.cpp ../Dock.cpp ../Orders.cpp ../Railway.cpp ../Ship.cpp ../Train.cpp ../TrainCrane.cpp ../Buffer.cpp ../BufferCrane.cpp ../Car.cpp ../CarCrane.cpp ../MainBuffer.cpp ../OrderInfo.cpp ../MainBufferCrane.cpp
 # ../Port.cpp ../ShipCrane.cpp ../Container.cpp ../Dock.cpp ../Orders.cpp ../Railway.cpp ../Ship.cpp ../Train.cpp ../TrainStation.cpp

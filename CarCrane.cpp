@@ -1,4 +1,5 @@
 #include "CarCrane.h"
+#include "Port.h"
 
 CarCrane::CarCrane()
 {
@@ -9,9 +10,14 @@ CarCrane::CarCrane()
 
 void CarCrane::lifeCycle()
 {
-    while (true)
+    while (Port::isRunning)
     {
         waitingForCar();
+        if (!Port::isRunning)
+        {
+            this->mtx.lock();
+            return;
+        }
         unloadCar();
     }
 }
@@ -88,6 +94,12 @@ void CarCrane::waitingForCar()
 
 void CarCrane::workSimulation(int times)
 {
+
+    if (!Port::isRunning)
+    {
+        this->mtx.unlock();
+        return;
+    }
     for (int i = 0; i < times; i++)
     {
         this_thread::sleep_for(chrono::milliseconds(100));

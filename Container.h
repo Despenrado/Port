@@ -14,6 +14,7 @@ public:
     mutex mtx;
     int id;
     bool isSend;
+    bool isOrderd;
 
     Container(int);
     Container();

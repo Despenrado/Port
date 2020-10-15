@@ -40,7 +40,7 @@ bool Dock::registerCar(Car *newCar)
     {
         newCar->mtx.lock();
         newCar->state = "parking";
-        newCar->dockNum = -1;
+        newCar->bufNum = -1;
         newCar->mtx.unlock();
         this->bufferCrane->registerCar(newCar);
         this->car_order.erase(this->car_order.begin());

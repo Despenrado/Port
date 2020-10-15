@@ -11,24 +11,53 @@ Ship::Ship() {}
 
 void Ship::lifeCycle()
 {
-    while (true)
+    while (Port::isRunning)
     {
         loadContainers();
+        if (!Port::isRunning)
+        {
+            this->mtx.unlock();
+            return;
+        }
         sail();
+        if (!Port::isRunning)
+        {
+            this->mtx.unlock();
+            return;
+        }
         moor();
+        if (!Port::isRunning)
+        {
+            this->mtx.unlock();
+            return;
+        }
         unloadContainers();
+        if (!Port::isRunning)
+        {
+            this->mtx.unlock();
+            return;
+        }
         unMoor();
+        if (!Port::isRunning)
+        {
+            this->mtx.unlock();
+            return;
+        }
         sail();
     }
 }
 
 void Ship::loadContainers()
 {
+    this->mtx.lock();
     //std::cout << state << std::endl;
     while (maxContainers >= containerList.size())
     {
+        this->mtx.unlock();
         takeContainer();
+        this->mtx.lock();
     }
+    this->mtx.unlock();
 }
 
 void Ship::unloadContainers()
@@ -105,6 +134,11 @@ void Ship::unMoor()
 
 void Ship::workSimulation(int times)
 {
+    if (!Port::isRunning)
+    {
+        this->mtx.unlock();
+        return;
+    }
     for (int i = 0; i < times; i++)
     {
         this_thread::sleep_for(chrono::milliseconds(100));

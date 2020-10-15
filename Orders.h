@@ -17,6 +17,7 @@ public:
     static void genContainerList(int);
     static void workSimulation(int);
     static void delContainer(int);
+    static int getOrder();
 
     Orders();
 };

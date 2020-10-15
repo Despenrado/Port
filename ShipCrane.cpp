@@ -1,4 +1,5 @@
 #include "ShipCrane.h"
+#include "Port.h"
 
 ShipCrane::ShipCrane()
 {
@@ -9,9 +10,14 @@ ShipCrane::ShipCrane()
 
 void ShipCrane::lifeCycle()
 {
-    while (true)
+    while (Port::isRunning)
     {
         waitingForShip();
+        if (!Port::isRunning)
+        {
+            this->mtx.unlock();
+            return;
+        }
         unloadShip();
     }
 }
@@ -101,6 +107,11 @@ void ShipCrane::waitingForShip()
 
 void ShipCrane::workSimulation(int times)
 {
+    if (!Port::isRunning)
+    {
+        this->mtx.unlock();
+        return;
+    }
     for (int i = 0; i < times; i++)
     {
         this_thread::sleep_for(chrono::milliseconds(100));

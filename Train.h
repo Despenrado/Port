@@ -1,6 +1,6 @@
 #pragma once
 #include "Container.h"
-// #include <atomic>
+#include <atomic>
 #include <iostream>
 #include <vector>
 
@@ -11,17 +11,25 @@ class Train
 
 public:
     int id;
-    bool isFull();
-    // atomic<string> state;
+    string state;
+    mutex mtxState;
     vector<Container *> containerList;
+    vector<int> trainOrderList;
+    int maxContainers;
+    atomic_int progress{0};
+    mutex mtx;
 
     Train();
+    Train(int id);
 
+    void takeOrders();
     void stopAtStation();
     void leftFromStation();
     void ride();
     void unloadContainers();
     void loadContainers();
-    void takeContainer(Container &);
-    void giveContainer(Container &);
+    void takeContainer(Container *);
+    Container *giveContainer();
+    void lifeCycle();
+    void workSimulation(int);
 };

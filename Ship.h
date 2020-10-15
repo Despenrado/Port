@@ -17,7 +17,6 @@ public:
     mutex mtxState;
     vector<Container *> containerList;
     int maxContainers;
-    int waitingTime;
     atomic_int progress{0};
     mutex mtx;
 

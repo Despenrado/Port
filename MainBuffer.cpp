@@ -4,7 +4,7 @@
 MainBuffer::MainBuffer()
 {
     this->carCrane = new CarCrane();
-    this->bufferCrane = new BufferCrane(carCrane->buffer);
+    this->bufferCrane = new MainBufferCrane(carCrane->buffer);
     this->car = NULL;
 }
 
@@ -45,9 +45,6 @@ bool MainBuffer::registerCarUnload(Car *newCar)
     this->carCrane->mtx.unlock();
     this->mtxBusy.unlock();
     return false;
-
-    this->carCrane->myCar = car;
-    this->car = car;
 }
 
 void MainBuffer::unregisterCarUnload()
@@ -74,11 +71,11 @@ bool MainBuffer::registerCarLoad(Car *newCar)
     this->bufferCrane->mtx.lock();
     if (this->bufferCrane->myCar == NULL)
     {
-        this->bufferCrane->mtx.unlock();
         newCar->mtx.lock();
         newCar->state = "parking";
         newCar->mtx.unlock();
         this->bufferCrane->registerCar(newCar);
+        this->bufferCrane->mtx.unlock();
         this->car_order_load.erase(this->car_order_load.begin());
         this->mtxBusy.unlock();
         newCar->workSimulation(10);
@@ -91,7 +88,6 @@ bool MainBuffer::registerCarLoad(Car *newCar)
 
 bool MainBuffer::unregisterCarLoad(Car *oldCar)
 {
-    oldCar->workSimulation(10);
     this->bufferCrane->unregisterCar();
     return true;
 }

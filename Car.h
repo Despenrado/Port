@@ -1,4 +1,5 @@
 #pragma once
+#include "OrderInfo.h"
 #include "Orders.h"
 #include <atomic>
 #include <mutex>
@@ -18,15 +19,16 @@ public:
     Container *currentContainer;
     atomic_int progress{0};
     mutex mtx;
-    int dockNum;
+    int bufNum;
+    OrderInfo *orderInfo;
 
     Car();
     Car(int id);
 
-    void loadDock();
-    void loadTrain();
-    void unloadDock();
-    void unloadTrain();
+    void loadFromDock();
+    void loadFromMainBuffer();
+    void unloadToMainBuffer();
+    void unloadToTrain();
     void rideFree();
     void rideFull();
     Container *giveContainer();
